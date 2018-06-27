@@ -16,7 +16,6 @@ window.set_title("Webkit")
 webview = WebKit.WebView()
 webview.open("file:///home/artem/Pyhtml/drawingGPX.html")
 scrolledWindow = Gtk.ScrolledWindow()
-webview.zoom_out
 scrolledWindow.add(webview)
 window.add(scrolledWindow)
 
