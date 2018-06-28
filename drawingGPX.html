@@ -9,11 +9,9 @@
   </head>
   <body>
     <div id="map" class="map"></div>
-    <div id="info">&nbsp;</div>
     <script>
       var raster = new ol.layer.Tile({
         source: new ol.source.OSM()});
-
       var style = {
         'Point': new ol.style.Style({
           image: new ol.style.Circle({
@@ -40,7 +38,6 @@
           })
         })
       };
-
       var vector = new ol.layer.Vector({
         source: new ol.source.Vector({
           url: 'http://localhost:8000/qw.gpx',
@@ -50,7 +47,6 @@
           return style[feature.getGeometry().getType()];
         }
       });
-
       var vector2 = new ol.layer.Vector({
         source: new ol.source.Vector({
           url: 'http://localhost:8000/GPXCreator/testGPX.gpx',
@@ -60,7 +56,6 @@
           return style[feature.getGeometry().getType()];
         }
       });
-
       var map = new ol.Map({
         layers: [raster, vector, vector2],
         target: document.getElementById('map'),
@@ -69,7 +64,6 @@
           zoom: 12
         })
       });
-
       var displayFeatureInfo = function(pixel) {
         var features = [];
         map.forEachFeatureAtPixel(pixel, function(feature) {
@@ -88,7 +82,6 @@
           map.getTarget().style.cursor = '';
         }
       };
-
       map.on('pointermove', function(evt) {
         if (evt.dragging) {
           return;
@@ -96,7 +89,6 @@
         var pixel = map.getEventPixel(evt.originalEvent);
         displayFeatureInfo(pixel);
       });
-
       map.on('click', function(evt) {
         displayFeatureInfo(evt.pixel);
       });
