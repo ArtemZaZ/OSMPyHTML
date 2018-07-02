@@ -1,11 +1,15 @@
 import gpxpy
 import matplotlib.pyplot as plt
 import numpy as np
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk3 import (
     NavigationToolbar2GTK3 as NavigationToolbar)
 from matplotlib.backends.backend_gtk3agg import (
     FigureCanvasGTK3Agg as FigureCanvas)
+import threading
 
 
 class SnaptoCursor(object):
@@ -71,6 +75,21 @@ class PlotCanvas(FigureCanvas):
         self.cursor = SnaptoCursor(self.plot, q, mag)
         self.fig.canvas.mpl_connect("motion_notify_event", self.cursor.mouseMove)
         self.fig.canvas.mpl_connect("button_press_event", self.mousePress)
+
+
+class PlotWindow(Gtk.Window):
+    def __init__(self, title="Figure"):
+        Gtk.Window.__init__(self, title=title)
+        self.set_property("width_request", 300)
+        self.set_property("height_request", 300)
+        self.plotCanvas = PlotCanvas()
+        self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        self.add(self.box)
+        self.box.pack_start(self.plotCanvas, True, True, 0)
+        self.toolbar = NavigationToolbar(self.plotCanvas, self)
+        self.box.pack_start(self.toolbar, False, False, 1)
+
+
 
 
 

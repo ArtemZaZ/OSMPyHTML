@@ -13,6 +13,7 @@ import numpy as np
 import gpxpy.gpx
 from datetime import timedelta
 import Plot
+import threading
 
 class Pult:
     def __init__(self):
@@ -20,15 +21,14 @@ class Pult:
         self.builder.add_from_file("interface.glade")
         self.window = self.builder.get_object("window1")
         self.scrolledWindow = self.builder.get_object("scrolledwindow1")
-        self.box = self.builder.get_object("box3")  # бокс под виджет
-        self.box5 = self.builder.get_object("box5")  # бокс под виджет
+        #self.box = self.builder.get_object("box3")  # бокс под виджет
+        #self.box5 = self.builder.get_object("box5")  # бокс под виджет
 
         self.window.connect("delete-event", self.delete_event)
         self.window.set_title("Webkit")
         self.webview = WebKit.WebView()
         self.webview.open("file:///home/artem/Pyhtml/drawingGPX.html")
         self.scrolledWindow.add(self.webview)
-        self.window.add(self.scrolledWindow)
 
         self.LatLon = []
 
@@ -44,21 +44,24 @@ class Pult:
         s = [i[3] for i in self.LatLon]
         a.plot(t, s)
 
-        self.canvas = Plot.PlotCanvas()
-        #self.box.pack_start(canvas, True, True, 0)
+        #self.canvas = Plot.PlotCanvas()
+        #self.box.pack_start(self.canvas, True, True, 0)
 
         # Create toolbar
-        self.toolbar = NavigationToolbar(self.canvas, self.canvas.figure)
+        #self.toolbar = NavigationToolbar(self.canvas, self.canvas.figure)
         #self.box.pack_start(self.toolbar, True, True, 0)
-        self.canvas.loadGpx("GPXCreator/testGPX.gpx")
+        #self.canvas.loadGpx("GPXCreator/testGPX.gpx")
 
-        self.canvas.draw()
-        
+        #self.canvas.draw()
+
+        P = Plot.PlotWindow()
+        P.plotCanvas.loadGpx("GPXCreator/testGPX.gpx")
+        P.show_all()
         self.window.show_all()
         Gtk.main()
 
     def delete_event(self, widget, event, data=None):
         Gtk.main_quit()
 
-
 p = Pult()
+

@@ -22,16 +22,13 @@ class Pult:
         self.webview.open("file:///home/artem/Pyhtml/drawingGPX.html")
         self.scrolledWindow.add(self.webview)
         self.window.add(self.scrolledWindow)
-        self.canvas = Plot.PlotCanvas()
-        self.canvas.set_property("expand", False)
-
-        self.box.pack_start(self.canvas, True, True, 0)
+        self.canvas = Plot.Plot()
 
         # Create toolbar
-        self.toolbar = NavigationToolbar(self.canvas, self.box)
-        self.box.pack_start(self.toolbar, False, False, 0)
 
         self.canvas.loadGpx("GPXCreator/testGPX.gpx")
+        #self.toolbar = NavigationToolbar(self.canvas.plot, self.canvas.fig)
+
 
         self.window.show_all()
         Gtk.main()
