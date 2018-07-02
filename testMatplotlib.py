@@ -1,33 +1,39 @@
-from gi.repository import Gtk
+"""
+Example of matplotlib markers
+http://matplotlib.org/api/markers_api.html
+"""
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib import figure
+from matplotlib.backends.backend_agg import (
+FigureCanvasAgg as FigureCanvas)
+#needed to support 3d projections/plots
+from mpl_toolkits.mplot3d import Axes3D
 
-from matplotlib.backends.backend_gtk3 import (
-    NavigationToolbar2GTK3 as NavigationToolbar)
-from matplotlib.backends.backend_gtk3agg import (
-    FigureCanvasGTK3Agg as FigureCanvas)
-from matplotlib.figure import Figure
-import numpy as np
+fig = figure.Figure(figsize=(12,6))
 
-win = Gtk.Window()
-win.connect("delete-event", Gtk.main_quit)
-win.set_default_size(400, 300)
-win.set_title("Embedding in GTK")
+canvas = FigureCanvas(fig)
 
-f = Figure(figsize=(5, 4), dpi=100)
-a = f.add_subplot(1, 1, 1)
-t = np.arange(0.0, 3.0, 0.01)
-s = np.sin(2*np.pi*t)
-a.plot(t, s)
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+mlist = matplotlib.markers.MarkerStyle.markers.keys()
+pad=500
+for i, m in enumerate(mlist):
+	
+	ax.scatter(i+pad, 0, marker=m, s=150, color='y', edgecolor='k')
+	
+	#displays the m needed to make the marker
+	flip = i%2
+	alt = ((i%4)*.1 + .2)*((-1)**(flip+1))
+	ax.annotate(m, xy=(i+pad,0), xytext=(i+pad, alt),
+				bbox=dict(boxstyle="round",fc='w'), 
+				arrowprops=dict(arrowstyle="->"))
+	
+ax.set_ylim((-.5,.6))
+ax.set_xlim((498,535))
 
-vbox = Gtk.VBox()
-win.add(vbox)
-
-# Add canvas to vbox
-canvas = FigureCanvas(f)  # a Gtk.DrawingArea
-vbox.pack_start(canvas, True, True, 0)
-
-# Create toolbar
-toolbar = NavigationToolbar(canvas, win)
-vbox.pack_start(toolbar, False, False, 0)
-
-win.show_all()
-Gtk.main()
+ax.set_xticks([])
+ax.set_yticks([])
+plt.show()
+canvas.print_figure('../figures/markerstyle.png', 
+facecolor='lightgray')
