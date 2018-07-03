@@ -3,7 +3,8 @@
 import gi
 gi.require_version('WebKit', '3.0')
 gi.require_version('Gtk', '3.0')
-from gi.repository import WebKit, Gtk
+gi.require_version('Soup', '2.4')
+from gi.repository import WebKit, Gtk, Soup
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk3 import (
     NavigationToolbar2GTK3 as NavigationToolbar)
@@ -29,6 +30,11 @@ class Pult:
         self.webview = WebKit.WebView()
         self.webview.open("file:///home/artem/Pyhtml/drawingGPX.html")
         self.scrolledWindow.add(self.webview)
+
+        self.cookiejar = Soup.CookieJar()
+        self.cookiejar.set_accept_policy(Soup.CookieJarAcceptPolicy.ALWAYS)
+        self.session = WebKit.get_default_session()
+        self.session.add_feature(self.cookiejar)
 
         self.LatLon = []
 
@@ -82,6 +88,10 @@ class Pult:
 
         gpxMarkerFile.write(gpx.to_xml())
         gpxMarkerFile.close()
+
+        self.cookie = self.cookiejar.all_cookies()
+        print(self.cookie[1].get_value())
+
 
 
 p = Pult()
