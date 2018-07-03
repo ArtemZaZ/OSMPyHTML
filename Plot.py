@@ -46,17 +46,22 @@ class PlotCanvas(FigureCanvas):
         self.cursor = None
         self.plot = None
         self.markers = []
+        self.tastyData = []
 
     def loadGpx(self, path):
         gpxFile = open(path)
         gpx = gpxpy.parse(gpxFile)
+        self.gpxData.clear()
         self.gpxData.append(gpx)    # добавляем данные с gpx
         self._buildGpxData()
 
     def mousePress(self, event):
         if not event.inaxes:
             return
-        self.plot.scatter(self.cursor.ly.get_xdata(), self.cursor.lx.get_ydata(), s=45)
+        x, y = self.cursor.ly.get_xdata(), self.cursor.lx.get_ydata()
+        self.plot.scatter(x, y, s=50)
+        self.markers.append([x, y])
+        self.setMarker(self, self.cursor)
 
     def _buildGpxData(self):
         self.plot = self.fig.add_subplot(1, 1, 1)
@@ -72,9 +77,13 @@ class PlotCanvas(FigureCanvas):
                     lon.append(point.longitude)
                     mag.append(point.horizontal_dilution)
         self.plot.plot(q, mag)
+        self.tastyData = [q, lat, lon, mag]
         self.cursor = SnaptoCursor(self.plot, q, mag)
         self.fig.canvas.mpl_connect("motion_notify_event", self.cursor.mouseMove)
         self.fig.canvas.mpl_connect("button_press_event", self.mousePress)
+
+    def setMarker(self, cursor):    # ф-ия для перегрузки, вызывается, когда ставится маркер
+        pass
 
 
 class PlotWindow(Gtk.Window):
@@ -88,6 +97,8 @@ class PlotWindow(Gtk.Window):
         self.box.pack_start(self.plotCanvas, True, True, 0)
         self.toolbar = NavigationToolbar(self.plotCanvas, self)
         self.box.pack_start(self.toolbar, False, False, 1)
+
+
 
 
 

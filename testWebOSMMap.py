@@ -54,14 +54,35 @@ class Pult:
 
         #self.canvas.draw()
 
-        P = Plot.PlotWindow()
-        P.plotCanvas.loadGpx("GPXCreator/testGPX.gpx")
-        P.show_all()
+        self.P = Plot.PlotWindow()
+        self.P.plotCanvas.loadGpx("GPXCreator/testGPX.gpx")
+
+        def loadMarkers(plotCanvas, cursor):
+            self.loadToGpx()    # ставим маркер
+            self.webview.reload()   # обновляем html страницу
+
+        self.P.plotCanvas.setMarker = loadMarkers
+        self.P.show_all()
         self.window.show_all()
         Gtk.main()
 
     def delete_event(self, widget, event, data=None):
         Gtk.main_quit()
+        open("GPXCreator/markers.gpx", 'w').close()
+
+    def loadToGpx(self):
+        gpxMarkerFile = open("GPXCreator/markers.gpx", 'w')
+        gpx = gpxpy.gpx.GPX()
+
+        for marker in self.P.plotCanvas.markers:    # по каждому маркеру
+            gpxWpt = gpxpy.gpx.GPXWaypoint(longitude=self.P.plotCanvas.tastyData[2][int(marker[0])],
+                                           latitude=self.P.plotCanvas.tastyData[1][int(marker[0])])  #
+            #  значение берем по номеру исчисления, т.е. по x маркера
+            gpx.waypoints.append(gpxWpt)
+
+        gpxMarkerFile.write(gpx.to_xml())
+        gpxMarkerFile.close()
+
 
 p = Pult()
 
