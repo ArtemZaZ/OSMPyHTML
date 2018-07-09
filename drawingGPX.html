@@ -9,7 +9,10 @@
   </head>
   <body>
     <div id="map" class="map"></div>
+    <label id="lab">sadsxd</label>
     <script>
+      //document.cookie = "name=Artem"
+
       // слой карты + стили линий
       var raster = new ol.layer.Tile({
         source: new ol.source.OSM()});
@@ -86,10 +89,31 @@
         })
       });
 
+      const getCookie = function(name) {
+        var matches = document.cookie.match(new RegExp(
+          "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+        ));
+        return matches ? decodeURIComponent(matches[1]) : undefined;
+      }
+
+      var lab = document.getElementById("lab");
+
       var point = null;   // точка, которая привязывается к траектории
       var line = null;  // линия, которая привязана к точке
-      var marker1 = null; // первый маркер
-      var marker2 = null; // второй маркер
+      var marker1 = null;   // первый маркер
+      var marker2 = null;   // второй маркер
+      marker1Cookie = getCookie("marker1"); // куки первого маркера
+      marker2Cookie = getCookie("marker2"); // куки второго маркера
+
+      lab.innerHTML = "s " + decodeURI(document.cookie);
+      /*
+      if(marker1Cookie !== null){
+        marker1 = new ol.geom.Point(marker1Cookie); // первый маркер
+      }
+      if(marker2Cookie !== null){
+        marker2 = new ol.geom.Point(marker2Cookie); // второй маркер
+      }
+      */
 
       const displaySnap = function(coordinate){
         const closestFeature = vectorSource.getClosestFeatureToCoordinate(coordinate);  // выдать объект по ближайшей координате
@@ -116,6 +140,8 @@
         }
         map.render();
       };
+
+
 
       map.on('pointermove', function(evt) {   // событие движения курсора
         if (evt.dragging) {
@@ -153,14 +179,28 @@
               return;
             }
           }
-          //var latLon = ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326');
-          //document.cookie = "" + latLon;
         }
       };
 
       map.on('click', function(evt) {  // событие клика на карту
         updateMarkers();
         displaySnap(evt.coordinate);
+        if(marker1 !== null){
+            var marker1LatLon = ol.proj.transform(marker1.getCoordinates(), 'EPSG:3857', 'EPSG:4326');  // получаем координаты маркера
+        }
+        else{
+            var marker1LatLon = null;
+        }
+
+        if(marker2 !== null){
+            var marker2LatLon = ol.proj.transform(marker2.getCoordinates(), 'EPSG:3857', 'EPSG:4326');
+        }
+        else{
+            var marker2LatLon = null;
+        }
+        document.cookie = "marker1=" + marker1LatLon;
+        document.cookie = "marker2=" + marker2LatLon;
+        lab.innerHTML = "ssds " + decodeURI(document.cookie);
       });
 
 

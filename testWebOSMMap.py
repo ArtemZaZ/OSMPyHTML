@@ -48,6 +48,8 @@ class Pult:
             self.loadToGpx()    # ставим маркер, записываем в новый gpx файл
             self.webview.reload()   # обновляем html страницу
 
+            #print(self.cookie[1].get_value())
+
         self.P.plotCanvas.setMarker = loadMarkers   # запихиваем обработчик в plotCanvas
         self.P.show_all()
         self.window.show_all()
@@ -70,8 +72,11 @@ class Pult:
         gpxMarkerFile.write(gpx.to_xml())
         gpxMarkerFile.close()
 
-        #self.cookie = self.cookiejar.all_cookies()  # заглушка для проверки куки
+        self.cookie = self.cookiejar.all_cookies()  # заглушка для проверки куки
         #print(self.cookie[1].get_value())
+        #self.cookiejar.set_cookie(uri="file:///home/artem/Pyhtml/drawingGPX.html")
+        #print(self.cookiejar.get_accept_policy())
+        self.cookiejar.save()
 
 
 p = Pult()  # запускаем приложение
