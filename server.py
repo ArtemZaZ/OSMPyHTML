@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# Сервер, который дает доступ к локальным файлам
 try:
     # Python 3
     from http.server import HTTPServer, SimpleHTTPRequestHandler, test as test_orig

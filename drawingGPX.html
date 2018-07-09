@@ -10,8 +10,7 @@
   <body>
     <div id="map" class="map"></div>
     <script>
-      document.cookie = "user=asdzx";
-
+      // слой карты + стили линий
       var raster = new ol.layer.Tile({
         source: new ol.source.OSM()});
       var style = {
@@ -40,6 +39,8 @@
           })
         })
       };
+
+      // слой с локального сервера - одна из траекторий(не нужная)
       var vector = new ol.layer.Vector({
         source: new ol.source.Vector({
           url: 'http://localhost:8000/qw.gpx',
@@ -49,16 +50,22 @@
           return style[feature.getGeometry().getType()];
         }
       });
+
+      // ресурс с локального сервера - одна из траекторий(c квадракоптера)
+      var vectorSource = new ol.source.Vector({
+        url: 'http://localhost:8000/GPXCreator/testGPX.gpx',
+        format: new ol.format.GPX()
+       });
+
+      // слой с траекторией
       var vector2 = new ol.layer.Vector({
-        source: new ol.source.Vector({
-          url: 'http://localhost:8000/GPXCreator/testGPX.gpx',
-          format: new ol.format.GPX()
-        }),
+        source: vectorSource,
         style: function(feature) {
           return style[feature.getGeometry().getType()];
         }
       });
 
+      // слой с маркерами
       var markersVector = new ol.layer.Vector({
         source: new ol.source.Vector({
           url: 'http://localhost:8000/GPXCreator/markers.gpx',
@@ -69,41 +76,106 @@
         }
       });
 
+      // карта
       var map = new ol.Map({
-        layers: [raster, vector, vector2, markersVector],
+        layers: [raster, vector, vector2, markersVector], // загружаем все слои
         target: document.getElementById('map'),
         view: new ol.View({
-          center: ol.proj.fromLonLat([30.344354,59.86466]),
+          center: ol.proj.fromLonLat([30.344354,59.86466]), // центрирование карты
           zoom: 16
         })
       });
-      var displayFeatureInfo = function(pixel) {
-        var features = [];
-        map.forEachFeatureAtPixel(pixel, function(feature) {
-          features.push(feature);
-        });
-        if (features.length > 0) {
-          var info = [];
-          var i, ii;
-          for (i = 0, ii = features.length; i < ii; ++i) {
-            info.push(features[i].get('desc'));
-          }
 
-          map.getTarget().style.cursor = 'pointer';
-        } else {
-          map.getTarget().style.cursor = '';
+      var point = null;   // точка, которая привязывается к траектории
+      var line = null;  // линия, которая привязана к точке
+      var marker1 = null;
+      var marker2 = null;
+
+      const displaySnap = function(coordinate){
+        const closestFeature = vectorSource.getClosestFeatureToCoordinate(coordinate);  // выдать объект по ближайшей координате
+        if (closestFeature === null) {
+          point = null;
+          line = null;
         }
+        else {
+          const geometry = closestFeature.getGeometry();
+          const closestPoint = geometry.getClosestPoint(coordinate);
+          if (point === null) {   // если точка равна нулю
+            point = new ol.geom.Point(closestPoint);  // создать точку
+          }
+          else {
+            point.setCoordinates(closestPoint); // задать точке координаты
+          }
+          const coordinates = [coordinate, [closestPoint[0], closestPoint[1]]];
+          if (line === null) {
+            line = new ol.geom.LineString(coordinates); // создаем линию
+          }
+          else {
+            line.setCoordinates(coordinates); // задать линии координаты
+          }
+        }
+        map.render();
       };
-      map.on('pointermove', function(evt) {
+
+      map.on('pointermove', function(evt) {   // событие движения курсора
         if (evt.dragging) {
           return;
         }
-        var pixel = map.getEventPixel(evt.originalEvent);
-        displayFeatureInfo(pixel);
+        const coordinate = map.getEventCoordinate(evt.originalEvent);
+        displaySnap(coordinate);
       });
-      map.on('click', function(evt) {
-        displayFeatureInfo(evt.pixel);
+
+      map.on('click', function(evt) {  // событие клика на карту
+        displaySnap(evt.coordinate);
+        /*
+        const delta = 10;
+        if(point !== null){
+          var coordinate = point.getCoordinates();
+          if(marker1 !== null)
+          {
+            var markerCoord = marker1.getCoordinates();
+            if((Math.pow(markerCoord[0] - coordinate[0], 2) + Math.pow(markerCoord[1] - coordinate[1], 2)) < delta)
+            {
+              marker1 = null;
+            }
+          }
+          else
+          {
+            marker1 = ol.geom.Point(point);
+          }
+          //var latLon = ol.proj.transform(coordinate, 'EPSG:3857', 'EPSG:4326');
+          //document.cookie = "" + latLon;
+        } */
       });
+
+
+      const strokeLine = new ol.style.Stroke({   // стиль линии привязки
+        color: 'rgba(0,128,56,0.9)',
+        width: 2
+      });
+      const styleLine = new ol.style.Style({
+        stroke: strokeLine,
+        image: new ol.style.Circle({
+          radius: 5,
+          fill: null,
+          stroke: strokeLine
+        })
+      });
+
+      map.on('postcompose', function(evt) {
+        const vectorContext = evt.vectorContext;
+        vectorContext.setStyle(styleLine);
+        if (point !== null) {
+          vectorContext.drawGeometry(point);
+        }
+        if (marker1 !== null){
+          vectorContext.drawGeometry(marker1);
+        }
+        if (line !== null) {
+          vectorContext.drawGeometry(line);
+        }
+      });
+
     </script>
   </body>
 </html>
