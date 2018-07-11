@@ -107,15 +107,16 @@
       var marker1Cookie = getCookie("marker1"); // куки первого маркера(строка)
       var marker2Cookie = getCookie("marker2"); // куки второго маркера(строка)
 
-      // тут проверяем были ли поставлены меркеры перед обновлением
-      if(marker1Cookie !== undefined){
+      // тут проверяем были ли поставлены меркеры перед обновлением страницы
+      if((marker1Cookie !== undefined) && (marker1Cookie !== "null")){
         var temp = marker1Cookie.split(',').map(function(item) {  // парсим строку(тут надо проверять на null)
           return parseFloat(item, 10);
         });
         temp = ol.proj.transform(temp, 'EPSG:4326', 'EPSG:3857'); // переводим в систему координат карты
         marker1 = new ol.geom.Point(temp); // первый маркер
       }
-      if(marker2Cookie !== undefined){
+
+      if((marker2Cookie !== undefined) && (marker2Cookie !== "null")){
         var temp = marker2Cookie.split(',').map(function(item) {
           return parseFloat(item, 10);
         });
@@ -148,8 +149,6 @@
         }
         map.render();
       };
-
-
 
       map.on('pointermove', function(evt) {   // событие движения курсора
         if (evt.dragging) {
