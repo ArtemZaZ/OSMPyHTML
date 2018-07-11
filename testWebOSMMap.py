@@ -25,14 +25,14 @@ class Pult:
         self.window.connect("delete-event", self.delete_event)
         self.window.set_title("Webkit")
         self.webview = WebKit.WebView()
-        self.webview.open("file:///home/artem/Pyhtml/drawingGPX.html")
+        self.webview.open("http://localhost:8000/drawingGPX.html")  # если делать через file:///... то нельзя будет
+        # сохранять куки
         self.scrolledWindow.add(self.webview)
 
-        self.cookiejar = Soup.CookieJar()   # хрень для работы с куки
+        self.cookiejar = Soup.CookieJarText.new("cookie.txt", False)   # хрень для работы с куки
         self.cookiejar.set_accept_policy(Soup.CookieJarAcceptPolicy.ALWAYS)
         self.session = WebKit.get_default_session()     # получаем текущую сессию от webkit
         self.session.add_feature(self.cookiejar)    # и добавляем в нее хрень для работы с куки
-
         self.LatLon = []    # переменная для сохранения значений долготы, широты и т.д.
 
         gpxFile = open("GPXCreator/testGPX.gpx")    # открываем тестовый файл
@@ -47,8 +47,6 @@ class Pult:
         def loadMarkers(plotCanvas, cursor):    # обработчик установки маркера на график, ставит маркер на карте
             self.loadToGpx()    # ставим маркер, записываем в новый gpx файл
             self.webview.reload()   # обновляем html страницу
-
-            #print(self.cookie[1].get_value())
 
         self.P.plotCanvas.setMarker = loadMarkers   # запихиваем обработчик в plotCanvas
         self.P.show_all()
@@ -72,11 +70,11 @@ class Pult:
         gpxMarkerFile.write(gpx.to_xml())
         gpxMarkerFile.close()
 
-        self.cookie = self.cookiejar.all_cookies()  # заглушка для проверки куки
-        #print(self.cookie[1].get_value())
-        #self.cookiejar.set_cookie(uri="file:///home/artem/Pyhtml/drawingGPX.html")
-        #print(self.cookiejar.get_accept_policy())
-        self.cookiejar.save()
+        #temp = Soup.URI.new("file:///home/artem/Pyhtml/drawingGPX.html")
+        #self.cookiejar.set_cookie(temp, "cas=dsddas")
+
+        #self.cookie = self.cookiejar.all_cookies()  # заглушка для проверки куки
+        #self.cookiejar.save()
 
 
 p = Pult()  # запускаем приложение
