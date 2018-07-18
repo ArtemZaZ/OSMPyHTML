@@ -1,8 +1,11 @@
+import gpxpy
+from gpxpy import gpx
 # Модуль работы с данными
 
 
 class Data:     # класс данных одного файла измерений, сделано для удобства
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name  # имя траектории
         self.measurementNumber = []     # список с номером измерений
         self.longitude = []
         self.latitude = []
@@ -18,7 +21,8 @@ class Data:     # класс данных одного файла измерен
 
     def __getitem__(self, key):     # возвращает объект по ключу
 
-        class __SingleDimentionData:  # данные одного измерения
+        class __SingleDimentionData:  # данные одного измерения дополнительный класс для того, чтобы можно было дальше
+            # удобнее оперировать с данными
             def __init__(self, mN, lon, lat, mag, el):
                 self.measurementNumber = mN  # номером измерения
                 self.longitude = lon
@@ -32,17 +36,53 @@ class Data:     # класс данных одного файла измерен
 
 class DataWorker:
     def __init__(self):
-        self.dataLists = []  # список списков данных данных
+        self.dataLists = [] # список списков данных данных Routes
+        self.markers = []   # маркеры с matplotlib
 
     def loadData(self, path):   # загружаем данные из файла в dataList
         file = open(path, 'r')
         lines = [line for line in file]     # разделяем файл на строки
         tokens = [i.split("\t") for i in lines]   # парсим строки на токены с разделителем \t
-        dataList = [[]]
+        data = Data(path.split("/.")[-1])   # берем название файла
+        for i, took in enumerate(tokens[1:], start=1):     # идем по токенам с нумерацией, начиная с 1
+            data.append(mN=i, lon=float(took[5][1:]), lat=float(took[6][1:]),
+                        mag=(int(took[1]), int(took[2]), int(took[3])), el=float(took[7]))
+        self.dataLists.append(data)
+        file.close()
+
+    def loadSelfDataToGpxRoute(self, path):     # загружает все распарсенные данные в gpx траектории
+        file = open(path, 'w')
+
+        gpx = gpxpy.gpx.GPX()   # создаем gpx
+        for data in self.dataLists:     # проходимся по каждому маршруту
+            gpxRoute = gpxpy.gpx.GPXRoute()     # создаем маршрут
+            gpx.routes.append(gpxRoute)     # добавляем маршрут
+
+            for i in data:  # проходимся по каждому измерению в маршруте
+                gpxRoute.points.append(gpxpy.gpx.GPXRoutePoint(longitude=i.longitude, elevation=i.elevation,    # добавляем точки
+                                                               latitude=i.latitude))
+        file.write(gpx.to_xml())    # записываем в файл
+        file.close()
+
+    def loadMarkersToGpxPoint(self, markers, path):  # загружает все маркеры с matplotlib в gpx c именем path
+        file = open(path, 'w')
+
+        gpx = gpxpy.gpx.GPX()
+        for marker in self.markers:     # проходимся по каждому маркеру
+            gpxWpt = gpxpy.gpx.GPXWaypoint(longitude=marker.longitude, elevation=marker.elevation,
+                                           latitude=marker.latitude)
+            gpx.waypoints.append(gpxWpt)
+        file.write(gpx.to_xml())
+        file.close()
 
 
-d = Data()
-d.append(1, 1, 1, 1, 1)
-d.append(1, 2, 3, 4, 5)
 
-print(d[1].longitude)
+
+
+"""
+dataWorker = DataWorker()
+dataWorker.loadData("Выборг/Участок2/пролет над врезкой1.txt")
+dataWorker.loadData("Выборг/Участок2/пролет над врезкой2.txt")
+dataWorker.loadData("Выборг/Участок2/пролет над врезкой3.txt")
+dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
+"""
