@@ -42,7 +42,7 @@ class Pult:
                 self.LatLon.append([point.vertical_dilution, point.latitude, point.longitude, point.horizontal_dilution])   # добавляем в latlon данные точек
 
         self.P = Plot.PlotWindow()  # создаем окно с графиком
-        self.P.plotCanvas.loadGpx("GPXCreator/testGPX.gpx")  # грузим туда график
+        #self.P.plotCanvas.loadGpx()  # грузим туда график
 
         def loadMarkers(plotCanvas, cursor):    # обработчик установки маркера на график, ставит маркер на карте
             self.loadToGpx()    # ставим маркер, записываем в новый gpx файл

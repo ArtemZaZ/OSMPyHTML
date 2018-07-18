@@ -64,7 +64,7 @@ class DataWorker:
         file.write(gpx.to_xml())    # записываем в файл
         file.close()
 
-    def loadMarkersToGpxPoint(self, markers, path):  # загружает все маркеры с matplotlib в gpx c именем path
+    def loadMarkersToGpxPoint(self, path):  # загружает все маркеры с matplotlib в gpx c именем path
         file = open(path, 'w')
 
         gpx = gpxpy.gpx.GPX()
@@ -74,8 +74,6 @@ class DataWorker:
             gpx.waypoints.append(gpxWpt)
         file.write(gpx.to_xml())
         file.close()
-
-
 
 
 

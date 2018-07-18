@@ -17,7 +17,6 @@ class SnaptoCursor(object):
     Две линии, бегающие за курсором
 
     """
-
     def __init__(self, ax, x, y):   # ax - plot, x - набор данных по x, y - набор данных по y
         self.ax = ax
         self.lx = ax.axhline(color='k', lw=1)  # the horiz line
@@ -42,19 +41,17 @@ class PlotCanvas(FigureCanvas):
     def __init__(self):
         self.fig = Figure(figsize=(5, 4), dpi=100)
         FigureCanvas.__init__(self, self.fig)
-        self.gpxData = []   # данные с GPX файла
+        self.data = None    # данные графика
         self.cursor = None  # курсор
         self.plot = None    # график
         self.markers = []   # маркеры
-        self.tastyData = [] # распарсенные данные, хранятся как кеш, чтоб при поиске параметров маркера не парсить
-        # второй раз gpx файл
 
-    def loadGpx(self, path):    # загрузка графика
-        gpxFile = open(path)
-        gpx = gpxpy.parse(gpxFile)
-        self.gpxData.clear()    # очистка предыдущих данных
-        self.gpxData.append(gpx)    # добавляем данные с gpx
-        self._buildGpxData()    # сборка новых данных
+    def loadData(self, data):    # загрузка графика
+        self.data = data
+        self.plot.plot(self.data.measurementNumber, self.data.magnitude[0])     # сделать, чтоб было 3 графика
+        self.cursor = SnaptoCursor(self.plot, self.data.measurementNumber, self.data.magnitude[0])
+        self.fig.canvas.mpl_connect("motion_notify_event", self.cursor.mouseMove)   # привязываем события к обработчикам
+        self.fig.canvas.mpl_connect("button_press_event", self.mousePress)
 
     def mousePress(self, event):    # обработчик события, нажатия кнопки мыши
         if not event.inaxes:
@@ -64,25 +61,6 @@ class PlotCanvas(FigureCanvas):
         self.plot.scatter(x, y, s=50)   # ставим маркер на график, толкина 50 попугаев
         self.markers.append([x, y])     # добавляем его в список маркеров
         self.setMarker(self, self.cursor)   # вызываем ф-ию обработчик того, что мы поставили маркер
-
-    def _buildGpxData(self):    # сборка данных графика
-        self.plot = self.fig.add_subplot(1, 1, 1)
-        q = []      # Данные с gpx
-        lat = []    #
-        lon = []    #
-        mag = []    #
-        for gpx in self.gpxData:    # проходим по каждому маршруту и добавляем значения из точек
-            for route in gpx.routes:
-                for point in route.points:
-                    q.append(point.vertical_dilution)
-                    lat.append(point.latitude)
-                    lon.append(point.longitude)
-                    mag.append(point.horizontal_dilution)
-        self.plot.plot(q, mag)
-        self.tastyData = [q, lat, lon, mag]     # сохраняем данные
-        self.cursor = SnaptoCursor(self.plot, q, mag)   # создаем курсор
-        self.fig.canvas.mpl_connect("motion_notify_event", self.cursor.mouseMove)   # привязываем события к обработчикам
-        self.fig.canvas.mpl_connect("button_press_event", self.mousePress)
 
     def setMarker(self, cursor):    # ф-ия для перегрузки, вызывается, когда ставится маркер
         pass
