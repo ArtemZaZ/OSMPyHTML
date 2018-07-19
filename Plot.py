@@ -9,7 +9,7 @@ from matplotlib.backends.backend_gtk3 import (
     NavigationToolbar2GTK3 as NavigationToolbar)
 from matplotlib.backends.backend_gtk3agg import (
     FigureCanvasGTK3Agg as FigureCanvas)
-import threading
+import DataWorker
 
 
 class SnaptoCursor(object):
@@ -44,12 +44,13 @@ class PlotCanvas(FigureCanvas):
         self.data = None    # данные графика
         self.cursor = None  # курсор
         self.plot = None    # график
-        self.markers = []   # маркеры
+        self.markersData = None   # маркеры
 
     def loadData(self, data):    # загрузка графика
         self.data = data
-        self.plot.plot(self.data.measurementNumber, self.data.magnitude[0])     # сделать, чтоб было 3 графика
-        self.cursor = SnaptoCursor(self.plot, self.data.measurementNumber, self.data.magnitude[0])
+        self.plot = self.fig.add_subplot(1, 1, 1)
+        self.plot.plot(self.data.measurementNumber, self.data.magnitudeX)     # сделать, чтоб было 3 графика
+        self.cursor = SnaptoCursor(self.plot, self.data.measurementNumber, self.data.magnitudeX)
         self.fig.canvas.mpl_connect("motion_notify_event", self.cursor.mouseMove)   # привязываем события к обработчикам
         self.fig.canvas.mpl_connect("button_press_event", self.mousePress)
 
@@ -58,11 +59,10 @@ class PlotCanvas(FigureCanvas):
             return
         x, y = self.cursor.ly.get_xdata(), self.cursor.lx.get_ydata()   # получение текущих значений вертикальной и
         # горизонтальной линий
-        self.plot.scatter(x, y, s=50)   # ставим маркер на график, толкина 50 попугаев
-        self.markers.append([x, y])     # добавляем его в список маркеров
-        self.setMarker(self, self.cursor)   # вызываем ф-ию обработчик того, что мы поставили маркер
+        self.plot.scatter(x, y, s=50)   # ставим маркер на график, толщина 50 попугаев
+        self.setMarker(self, self.cursor, x, y)   # вызываем ф-ию обработчик того, что мы поставили маркер
 
-    def setMarker(self, cursor):    # ф-ия для перегрузки, вызывается, когда ставится маркер
+    def setMarker(self, cursor, x, y):    # ф-ия для перегрузки, вызывается, когда ставится маркер
         pass
 
 

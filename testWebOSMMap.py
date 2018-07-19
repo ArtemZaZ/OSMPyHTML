@@ -12,6 +12,7 @@ from matplotlib.backends.backend_gtk3agg import (
     FigureCanvasGTK3Agg as FigureCanvas)
 import gpxpy.gpx
 import Plot
+import DataWorker
 
 
 class Pult:
@@ -33,19 +34,24 @@ class Pult:
         self.cookiejar.set_accept_policy(Soup.CookieJarAcceptPolicy.ALWAYS)
         self.session = WebKit.get_default_session()     # получаем текущую сессию от webkit
         self.session.add_feature(self.cookiejar)    # и добавляем в нее хрень для работы с куки
-        self.LatLon = []    # переменная для сохранения значений долготы, широты и т.д.
 
-        gpxFile = open("GPXCreator/testGPX.gpx")    # открываем тестовый файл
-        gpx = gpxpy.parse(gpxFile)  # парсим файл
-        for route in gpx.routes:    # по каждому маршруту
-            for point in route.points:  # по каждой точке
-                self.LatLon.append([point.vertical_dilution, point.latitude, point.longitude, point.horizontal_dilution])   # добавляем в latlon данные точек
+        self.dataWorker = DataWorker.DataWorker()
+
+        self.dataWorker = DataWorker.DataWorker()
+        self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой1.txt")
+        self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой2.txt")
+        self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой3.txt")
+        self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
 
         self.P = Plot.PlotWindow()  # создаем окно с графиком
-        #self.P.plotCanvas.loadGpx()  # грузим туда график
+        self.P.plotCanvas.loadData(self.dataWorker.dataLists[0])
 
-        def loadMarkers(plotCanvas, cursor):    # обработчик установки маркера на график, ставит маркер на карте
-            self.loadToGpx()    # ставим маркер, записываем в новый gpx файл
+        def loadMarkers(plotCanvas, cursor, x, y):    # обработчик установки маркера на график, ставит маркер на карте
+            point = plotCanvas.data[x]
+            self.dataWorker.markers.append(mN=point.measurementNumber, lon=point.longitude, magX=point.magnitudeX,
+                                           lat=point.latitude, magY=point.magnitudeY, el=point.elevation,
+                                           magZ=point.magnitudeZ)
+            self.dataWorker.loadMarkersToGpxPoint("markers.gpx")
             self.webview.reload()   # обновляем html страницу
 
         self.P.plotCanvas.setMarker = loadMarkers   # запихиваем обработчик в plotCanvas
@@ -55,7 +61,7 @@ class Pult:
 
     def delete_event(self, widget, event, data=None):
         Gtk.main_quit()
-        open("GPXCreator/markers.gpx", 'w').close()     # чистим файл с маркерами
+        open("markers.gpx", 'w').close()     # чистим файл с маркерами
 
     def loadToGpx(self):
         gpxMarkerFile = open("GPXCreator/markers.gpx", 'w')     # создаем gpx файл

@@ -9,35 +9,42 @@ class Data:     # класс данных одного файла измерен
         self.measurementNumber = []     # список с номером измерений
         self.longitude = []
         self.latitude = []
-        self.magnitude = []
+        self.magnitudeX = []
+        self.magnitudeY = []
+        self.magnitudeZ = []
         self.elevation = []
 
-    def append(self, mN, lon, lat, mag, el):
+    def append(self, mN, lon, lat, magX, magY, magZ, el):
         self.measurementNumber.append(mN)
         self.longitude.append(lon)
         self.latitude.append(lat)
-        self.magnitude.append(mag)
+        self.magnitudeX.append(magX)
+        self.magnitudeY.append(magY)
+        self.magnitudeZ.append(magZ)
         self.elevation.append(el)
 
     def __getitem__(self, key):     # возвращает объект по ключу
 
         class __SingleDimentionData:  # данные одного измерения дополнительный класс для того, чтобы можно было дальше
             # удобнее оперировать с данными
-            def __init__(self, mN, lon, lat, mag, el):
+            def __init__(self, mN, lon, lat, magX, magY, magZ, el):
                 self.measurementNumber = mN  # номером измерения
                 self.longitude = lon
                 self.latitude = lat
-                self.magnitude = mag
+                self.magnitudeX = magX
+                self.magnitudeY = magY
+                self.magnitudeZ = magZ
                 self.elevation = el
 
         return __SingleDimentionData(self.measurementNumber[key], self.longitude[key],
-                                     self.latitude[key], self.magnitude[key], self.elevation[key])
+                                     self.latitude[key], self.magnitudeX[key], self.magnitudeZ[key],
+                                     self.magnitudeY[key], self.elevation[key])
 
 
 class DataWorker:
     def __init__(self):
         self.dataLists = [] # список списков данных данных Routes
-        self.markers = []   # маркеры с matplotlib
+        self.markers = Data("markers")   # маркеры с matplotlib
 
     def loadData(self, path):   # загружаем данные из файла в dataList
         file = open(path, 'r')
@@ -46,7 +53,7 @@ class DataWorker:
         data = Data(path.split("/.")[-1])   # берем название файла
         for i, took in enumerate(tokens[1:], start=1):     # идем по токенам с нумерацией, начиная с 1
             data.append(mN=i, lon=float(took[5][1:]), lat=float(took[6][1:]),
-                        mag=(int(took[1]), int(took[2]), int(took[3])), el=float(took[7]))
+                        magX=int(took[1]), magY=int(took[2]), magZ=int(took[3]), el=float(took[7]))
         self.dataLists.append(data)
         file.close()
 
@@ -66,7 +73,6 @@ class DataWorker:
 
     def loadMarkersToGpxPoint(self, path):  # загружает все маркеры с matplotlib в gpx c именем path
         file = open(path, 'w')
-
         gpx = gpxpy.gpx.GPX()
         for marker in self.markers:     # проходимся по каждому маркеру
             gpxWpt = gpxpy.gpx.GPXWaypoint(longitude=marker.longitude, elevation=marker.elevation,

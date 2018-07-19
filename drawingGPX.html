@@ -89,7 +89,7 @@
       // слой с маркерами
       var markersVector = new ol.layer.Vector({
         source: new ol.source.Vector({
-          url: 'http://localhost:8000/GPXCreator/markers.gpx',
+          url: 'http://localhost:8000/markers.gpx',
           format: new ol.format.GPX()
         }),
         style: function(feature) {
@@ -102,7 +102,7 @@
         layers: [raster, vector, vector2, markersVector, routes], // загружаем все слои
         target: document.getElementById('map'),
         view: new ol.View({
-          center: ol.proj.fromLonLat([30.344354,59.86466]), // центрирование карты
+          center: ol.proj.fromLonLat([28.801295,60.437403]), // центрирование карты
           zoom: 16
         })
       });
