@@ -19,16 +19,17 @@ class Pult:
     def __init__(self):
         """развертываем интерфейс из interface.glade"""
         self.builder = Gtk.Builder()
-        self.builder.add_from_file("interface.glade")
+        self.builder.add_from_file("testInterface.glade")
         self.window = self.builder.get_object("window1")
-        self.scrolledWindow = self.builder.get_object("scrolledwindow1")
+        self.mapScrolledWindow = self.builder.get_object("MapScrolledWindows")
+        self.listBox = self.builder.get_object("ListBox")
 
         self.window.connect("delete-event", self.delete_event)
         self.window.set_title("Webkit")
         self.webview = WebKit.WebView()
         self.webview.open("http://localhost:8000/drawingGPX.html")  # если делать через file:///... то нельзя будет
         # сохранять куки
-        self.scrolledWindow.add(self.webview)
+        self.mapScrolledWindow.add(self.webview)
 
         self.cookiejar = Soup.CookieJarText.new("cookie.txt", False)   # хрень для работы с куки
         self.cookiejar.set_accept_policy(Soup.CookieJarAcceptPolicy.ALWAYS)
