@@ -24,6 +24,8 @@ class Pult:
         self.window = self.builder.get_object("window1")
         self.mapScrolledWindow = self.builder.get_object("MapScrolledWindows")
         self.listBox = self.builder.get_object("ListBox")
+        self.traectoryFileChooserButton = self.builder.get_object("TraectoryFileChooserButton")
+        self.addTraectoryButton = self.builder.get_object("AddTraectoryButton")
 
         row = TraectoryListBoxRow.TraectoryListBoxRow("Первая траектория")
         self.listBox.add(row)
@@ -57,10 +59,7 @@ class Pult:
         self.P.plotCanvas.loadData(self.dataWorker.dataLists[0])
 
         def loadMarkers(plotCanvas, cursor, x, y):    # обработчик установки маркера на график, ставит маркер на карте
-            point = plotCanvas.data[x]
-            self.dataWorker.markers.append(mN=point.measurementNumber, lon=point.longitude, magX=point.magnitudeX,
-                                           lat=point.latitude, magY=point.magnitudeY, el=point.elevation,
-                                           magZ=point.magnitudeZ)
+            plotCanvas.data.plotMarkers.append(plotCanvas.data[x])
             self.dataWorker.loadMarkersToGpxPoint("markers.gpx")
             self.webview.reload()   # обновляем html страницу
 
@@ -72,19 +71,6 @@ class Pult:
     def delete_event(self, widget, event, data=None):
         Gtk.main_quit()
         open("markers.gpx", 'w').close()     # чистим файл с маркерами
-
-    def loadToGpx(self):
-        gpxMarkerFile = open("GPXCreator/markers.gpx", 'w')     # создаем gpx файл
-        gpx = gpxpy.gpx.GPX()
-
-        for marker in self.P.plotCanvas.markers:    # по каждому маркеру
-            gpxWpt = gpxpy.gpx.GPXWaypoint(longitude=self.P.plotCanvas.tastyData[2][int(marker[0])],
-                                           latitude=self.P.plotCanvas.tastyData[1][int(marker[0])])  #
-            #  значение берем по номеру исчисления, т.е. по x маркера
-            gpx.waypoints.append(gpxWpt)    # добавляем точку в gpx файл
-
-        gpxMarkerFile.write(gpx.to_xml())
-        gpxMarkerFile.close()
 
         #temp = Soup.URI.new("file:///home/artem/Pyhtml/drawingGPX.html")
         #self.cookiejar.set_cookie(temp, "cas=dsddas")

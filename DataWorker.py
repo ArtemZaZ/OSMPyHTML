@@ -13,6 +13,7 @@ class Data:     # класс данных одного файла измерен
         self.magnitudeY = []
         self.magnitudeZ = []
         self.elevation = []
+        self.plotMarkers = []   # маркеры с графиков данной траектории измерений
 
     def append(self, mN, lon, lat, magX, magY, magZ, el):
         self.measurementNumber.append(mN)
@@ -44,7 +45,6 @@ class Data:     # класс данных одного файла измерен
 class DataWorker:
     def __init__(self):
         self.dataLists = [] # список списков данных данных Routes
-        self.markers = Data("markers")   # маркеры с matplotlib
 
     def loadData(self, path):   # загружаем данные из файла в dataList
         file = open(path, 'r')
@@ -74,10 +74,11 @@ class DataWorker:
     def loadMarkersToGpxPoint(self, path):  # загружает все маркеры с matplotlib в gpx c именем path
         file = open(path, 'w')
         gpx = gpxpy.gpx.GPX()
-        for marker in self.markers:     # проходимся по каждому маркеру
-            gpxWpt = gpxpy.gpx.GPXWaypoint(longitude=marker.longitude, elevation=marker.elevation,
-                                           latitude=marker.latitude)
-            gpx.waypoints.append(gpxWpt)
+        for data in self.dataLists:
+            for marker in data.plotMarkers:     # проходимся по каждому маркеру
+                gpxWpt = gpxpy.gpx.GPXWaypoint(longitude=marker.longitude, elevation=marker.elevation,
+                                               latitude=marker.latitude)
+                gpx.waypoints.append(gpxWpt)
         file.write(gpx.to_xml())
         file.close()
 
