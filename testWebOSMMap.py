@@ -13,6 +13,7 @@ from matplotlib.backends.backend_gtk3agg import (
 import gpxpy.gpx
 import Plot
 import DataWorker
+import TraectoryListBoxRow
 
 
 class Pult:
@@ -23,6 +24,14 @@ class Pult:
         self.window = self.builder.get_object("window1")
         self.mapScrolledWindow = self.builder.get_object("MapScrolledWindows")
         self.listBox = self.builder.get_object("ListBox")
+
+        row = TraectoryListBoxRow.TraectoryListBoxRow("Первая траектория")
+        self.listBox.add(row)
+
+        row2 = TraectoryListBoxRow.TraectoryListBoxRow("Вторая траектория")
+        self.listBox.add(row2)
+
+        #self.listBox.remove(row)
 
         self.window.connect("delete-event", self.delete_event)
         self.window.set_title("Webkit")
