@@ -50,7 +50,7 @@ class DataWorker:
         file = open(path, 'r')
         lines = [line for line in file]     # разделяем файл на строки
         tokens = [i.split("\t") for i in lines]   # парсим строки на токены с разделителем \t
-        data = Data(path.split("/.")[-1])   # берем название файла
+        data = Data(path.split("/")[-1])   # берем название файла
         for i, took in enumerate(tokens[1:], start=1):     # идем по токенам с нумерацией, начиная с 1
             data.append(mN=i, lon=float(took[5][1:]), lat=float(took[6][1:]),
                         magX=int(took[1]), magY=int(took[2]), magZ=int(took[3]), el=float(took[7]))

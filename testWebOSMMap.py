@@ -26,14 +26,7 @@ class Pult:
         self.listBox = self.builder.get_object("ListBox")
         self.traectoryFileChooserButton = self.builder.get_object("TraectoryFileChooserButton")
         self.addTraectoryButton = self.builder.get_object("AddTraectoryButton")
-
-        row = TraectoryListBoxRow.TraectoryListBoxRow("Первая траектория")
-        self.listBox.add(row)
-
-        row2 = TraectoryListBoxRow.TraectoryListBoxRow("Вторая траектория")
-        self.listBox.add(row2)
-
-        #self.listBox.remove(row)
+        self.addTraectoryButton.connect("clicked", self.addTraectoryButton_Click)
 
         self.window.connect("delete-event", self.delete_event)
         self.window.set_title("Webkit")
@@ -48,15 +41,12 @@ class Pult:
         self.session.add_feature(self.cookiejar)    # и добавляем в нее хрень для работы с куки
 
         self.dataWorker = DataWorker.DataWorker()
-
-        self.dataWorker = DataWorker.DataWorker()
-        self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой1.txt")
-        self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой2.txt")
-        self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой3.txt")
-        self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
+        #self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой1.txt")
+        #self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой2.txt")
+        #self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой3.txt")
+        #self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
 
         self.P = Plot.PlotWindow()  # создаем окно с графиком
-        self.P.plotCanvas.loadData(self.dataWorker.dataLists[0])
 
         def loadMarkers(plotCanvas, cursor, x, y):    # обработчик установки маркера на график, ставит маркер на карте
             plotCanvas.data.plotMarkers.append(plotCanvas.data[x])
@@ -68,16 +58,40 @@ class Pult:
         self.window.show_all()
         Gtk.main()
 
+    def addRowToListBox(self, listBox, row):
+        def deleteTraectoryFunc(row, w):    # тут весь процесс удаления траекторий
+            listBox.remove(row)
+
+        row.deleteRowCallBack = deleteTraectoryFunc     # заглушка, вызывается при нажатии любой из кнопок удаления
+        # траектории
+        listBox.add(row)
+
     def delete_event(self, widget, event, data=None):
         Gtk.main_quit()
         open("markers.gpx", 'w').close()     # чистим файл с маркерами
 
+        # глушняк с маркерами
         #temp = Soup.URI.new("file:///home/artem/Pyhtml/drawingGPX.html")
         #self.cookiejar.set_cookie(temp, "cas=dsddas")
 
         #self.cookie = self.cookiejar.all_cookies()  # заглушка для проверки куки
         #self.cookiejar.save()
 
+    def addTraectoryButton_Click(self, w):
+        traectoryPath = self.traectoryFileChooserButton.get_filename()
+        if traectoryPath is not None:
+            self.dataWorker.loadData(traectoryPath)
+            self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
+            self.P.plotCanvas.loadData(self.dataWorker.dataLists[0])
+            print(self.dataWorker.dataLists[0].name)
+            row = TraectoryListBoxRow.TraectoryListBoxRow(self.dataWorker.dataLists[0].name)
+            self.addRowToListBox(self.listBox, row)
+        self.window.show_all()
 
 p = Pult()  # запускаем приложение
+
+
+
+
+
 
