@@ -82,9 +82,8 @@ class Pult:
         if traectoryPath is not None:
             self.dataWorker.loadData(traectoryPath)
             self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
-            self.P.plotCanvas.loadData(self.dataWorker.dataLists[0])
-            print(self.dataWorker.dataLists[0].name)
-            row = TraectoryListBoxRow.TraectoryListBoxRow(self.dataWorker.dataLists[0].name)
+            self.P.plotCanvas.loadData(self.dataWorker.dataLists[0])    # нужен Plot Manager
+            row = TraectoryListBoxRow.TraectoryListBoxRow(traectoryPath.split("/")[-1])
             self.addRowToListBox(self.listBox, row)
         self.window.show_all()
 

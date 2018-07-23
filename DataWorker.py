@@ -82,6 +82,10 @@ class DataWorker:
         file.write(gpx.to_xml())
         file.close()
 
+    def removeDataByName(self, name):
+        for data in self.dataLists:
+            pass
+
 
 
 """
