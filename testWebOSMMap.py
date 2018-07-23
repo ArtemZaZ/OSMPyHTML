@@ -26,6 +26,8 @@ class Pult:
         self.listBox = self.builder.get_object("ListBox")
         self.traectoryFileChooserButton = self.builder.get_object("TraectoryFileChooserButton")
         self.addTraectoryButton = self.builder.get_object("AddTraectoryButton")
+        self.clearButton = self.builder.get_object("ClearButton")
+        self.clearButton.connect("clicked", self.clearButton_Click)
         self.addTraectoryButton.connect("clicked", self.addTraectoryButton_Click)
 
         self.window.connect("delete-event", self.delete_event)
@@ -40,31 +42,36 @@ class Pult:
         self.session = WebKit.get_default_session()     # получаем текущую сессию от webkit
         self.session.add_feature(self.cookiejar)    # и добавляем в нее хрень для работы с куки
 
+        self.plots = []     # список с графиками
+
         self.dataWorker = DataWorker.DataWorker()
         #self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой1.txt")
         #self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой2.txt")
         #self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой3.txt")
         #self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
 
-        self.P = Plot.PlotWindow()  # создаем окно с графиком
-
-        def loadMarkers(plotCanvas, cursor, x, y):    # обработчик установки маркера на график, ставит маркер на карте
-            plotCanvas.data.plotMarkers.append(plotCanvas.data[x])
-            self.dataWorker.loadMarkersToGpxPoint("markers.gpx")
-            self.webview.reload()   # обновляем html страницу
-
-        self.P.plotCanvas.setMarker = loadMarkers   # запихиваем обработчик в plotCanvas
-        self.P.show_all()
         self.window.show_all()
         Gtk.main()
 
     def addRowToListBox(self, listBox, row):
         def deleteTraectoryFunc(row, w):    # тут весь процесс удаления траекторий
-            listBox.remove(row)
+            self.dataWorker.removeDataByName(row.label.get_text())  # удаляем траекторию из dataWorker'a по названию row
+            listBox.remove(row)     # удаляем row
+            self.updateWebMapWorker()   # обновляем web
 
         row.deleteRowCallBack = deleteTraectoryFunc     # заглушка, вызывается при нажатии любой из кнопок удаления
         # траектории
         listBox.add(row)
+
+    def addPlotToPlotList(self, plotList, plot):
+        def loadMarkers(plotCanvas, cursor, x, y):    # обработчик установки маркера на график, ставит маркер на карте
+            plotCanvas.data.plotMarkers.append(plotCanvas.data[x])
+            self.dataWorker.loadMarkersToGpxPoint("markers.gpx")
+            self.webview.reload()   # обновляем html страницу
+
+        plot.plotCanvas.setMarker = loadMarkers   # запихиваем обработчик в plotCanvas
+        plot.show_all()
+        plotList.append(plot)
 
     def delete_event(self, widget, event, data=None):
         Gtk.main_quit()
@@ -80,12 +87,24 @@ class Pult:
     def addTraectoryButton_Click(self, w):
         traectoryPath = self.traectoryFileChooserButton.get_filename()
         if traectoryPath is not None:
-            self.dataWorker.loadData(traectoryPath)
-            self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
-            self.P.plotCanvas.loadData(self.dataWorker.dataLists[0])    # нужен Plot Manager
-            row = TraectoryListBoxRow.TraectoryListBoxRow(traectoryPath.split("/")[-1])
-            self.addRowToListBox(self.listBox, row)
-        self.window.show_all()
+            data = self.dataWorker.loadData(traectoryPath)     # загружаем данные из файла
+            plot = Plot.PlotWindow()  # создаем окно с графиком
+            self.addPlotToPlotList(self.plots, plot)
+            plot.plotCanvas.loadData(data)
+            row = TraectoryListBoxRow.TraectoryListBoxRow(data.name)     # берем только имя файла
+            self.addRowToListBox(self.listBox, row)     # добавляем row в listBox
+            self.updateWebMapWorker()
+            self.window.show_all()
+
+    def clearButton_Click(self, w):     # просто очистка web'a
+        open("GPXRoutes.gpx", 'w').close()
+        open("markers.gpx", 'w').close()
+        self.webview.reload()
+
+    def updateWebMapWorker(self):     # обновляем данные карты
+        self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
+        self.webview.reload()   # обновляем html страницу
+
 
 p = Pult()  # запускаем приложение
 

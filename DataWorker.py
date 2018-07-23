@@ -56,6 +56,7 @@ class DataWorker:
                         magX=int(took[1]), magY=int(took[2]), magZ=int(took[3]), el=float(took[7]))
         self.dataLists.append(data)
         file.close()
+        return data
 
     def loadSelfDataToGpxRoute(self, path):     # загружает все распарсенные данные в gpx траектории
         file = open(path, 'w')
@@ -82,10 +83,11 @@ class DataWorker:
         file.write(gpx.to_xml())
         file.close()
 
-    def removeDataByName(self, name):
-        for data in self.dataLists:
-            pass
-
+    def removeDataByName(self, name):   # удаляем данные из списка данных по имени
+        for i in range(len(self.dataLists)):
+            if self.dataLists[i].name == name:
+                del self.dataLists[i]
+                break   # прерываемся, чтоб не было исключений
 
 
 """
