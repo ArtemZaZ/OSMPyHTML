@@ -5,6 +5,7 @@ gi.require_version('WebKit', '3.0')
 gi.require_version('Gtk', '3.0')
 gi.require_version('Soup', '2.4')
 from gi.repository import WebKit, Gtk, Soup
+import server
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk3 import (
     NavigationToolbar2GTK3 as NavigationToolbar)
@@ -26,9 +27,11 @@ class Pult:
         self.listBox = self.builder.get_object("ListBox")
         self.traectoryFileChooserButton = self.builder.get_object("TraectoryFileChooserButton")
         self.addTraectoryButton = self.builder.get_object("AddTraectoryButton")
-        self.clearButton = self.builder.get_object("ClearButton")
-        self.clearButton.connect("clicked", self.clearButton_Click)
+        self.clearAllButton = self.builder.get_object("ClearAllButton")
+        self.updateButton = self.builder.get_object("UpdateButton")
+        self.clearAllButton.connect("clicked", self.clearAllButton_Click)
         self.addTraectoryButton.connect("clicked", self.addTraectoryButton_Click)
+        self.updateButton.connect("clicked", self.updateButton_Click)
 
         self.window.connect("delete-event", self.delete_event)
         self.window.set_title("Webkit")
@@ -45,17 +48,15 @@ class Pult:
         self.plots = []     # список с графиками
 
         self.dataWorker = DataWorker.DataWorker()
-        #self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой1.txt")
-        #self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой2.txt")
-        #self.dataWorker.loadData("Выборг/Участок2/пролет над врезкой3.txt")
-        #self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
 
         self.window.show_all()
         Gtk.main()
 
     def addRowToListBox(self, listBox, row):
         def deleteTraectoryFunc(row, w):    # тут весь процесс удаления траекторий
-            self.dataWorker.removeDataByName(row.label.get_text())  # удаляем траекторию из dataWorker'a по названию row
+            name = row.label.get_text()
+            self.dataWorker.removeDataByName(name)  # удаляем траекторию из dataWorker'a по названию row
+            self.removePlotInPlotListByName(name)   # закрываем и удаляем график
             listBox.remove(row)     # удаляем row
             self.updateWebMapWorker()   # обновляем web
 
@@ -73,12 +74,19 @@ class Pult:
         plot.show_all()
         plotList.append(plot)
 
+    def removePlotInPlotListByName(self, name):
+        for i in range(len(self.plots)):
+            if self.plots[i].plotCanvas.data.name == name:
+                self.plots[i].destroy()     # закрываем окно
+                del self.plots[i]     # удаляем график
+                break
+
     def delete_event(self, widget, event, data=None):
+        [plot.destroy() for plot in self.plots]
         Gtk.main_quit()
         open("markers.gpx", 'w').close()     # чистим файл с маркерами
 
         # глушняк с маркерами
-        #temp = Soup.URI.new("file:///home/artem/Pyhtml/drawingGPX.html")
         #self.cookiejar.set_cookie(temp, "cas=dsddas")
 
         #self.cookie = self.cookiejar.all_cookies()  # заглушка для проверки куки
@@ -88,7 +96,7 @@ class Pult:
         traectoryPath = self.traectoryFileChooserButton.get_filename()
         if traectoryPath is not None:
             data = self.dataWorker.loadData(traectoryPath)     # загружаем данные из файла
-            plot = Plot.PlotWindow()  # создаем окно с графиком
+            plot = Plot.PlotWindow(title=data.name)  # создаем окно с графиком
             self.addPlotToPlotList(self.plots, plot)
             plot.plotCanvas.loadData(data)
             row = TraectoryListBoxRow.TraectoryListBoxRow(data.name)     # берем только имя файла
@@ -96,16 +104,20 @@ class Pult:
             self.updateWebMapWorker()
             self.window.show_all()
 
-    def clearButton_Click(self, w):     # просто очистка web'a
-        open("GPXRoutes.gpx", 'w').close()
-        open("markers.gpx", 'w').close()
-        self.webview.reload()
+    def clearAllButton_Click(self, w):     # очистка всех траекторий
+        for row in self.listBox:
+            row.deleteRowCallBack(row, 0)   # чистим все
+
+    def updateButton_Click(self, w):    # обновить web
+        self.updateWebMapWorker()
 
     def updateWebMapWorker(self):     # обновляем данные карты
         self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
+        self.dataWorker.loadMarkersToGpxPoint("markers.gpx")
         self.webview.reload()   # обновляем html страницу
 
 
+server.server.start()  # запускаем сервер
 p = Pult()  # запускаем приложение
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # Сервер, который дает доступ к локальным файлам
+import threading
 try:
     # Python 3
     from http.server import HTTPServer, SimpleHTTPRequestHandler, test as test_orig
@@ -10,10 +11,18 @@ except ImportError: # Python 2
     from BaseHTTPServer import HTTPServer, test
     from SimpleHTTPServer import SimpleHTTPRequestHandler
 
+
 class CORSRequestHandler (SimpleHTTPRequestHandler):
     def end_headers (self):
         self.send_header('Access-Control-Allow-Origin', '*')
         SimpleHTTPRequestHandler.end_headers(self)
+
+
+def serve():
+    test(CORSRequestHandler, HTTPServer)
+
+
+server = threading.Thread(target=serve)
 
 if __name__ == '__main__':
     test(CORSRequestHandler, HTTPServer)
