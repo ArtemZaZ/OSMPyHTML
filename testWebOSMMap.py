@@ -6,23 +6,20 @@ gi.require_version('Gtk', '3.0')
 gi.require_version('Soup', '2.4')
 from gi.repository import WebKit, Gtk, Soup
 import server
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_gtk3 import (
-    NavigationToolbar2GTK3 as NavigationToolbar)
-from matplotlib.backends.backend_gtk3agg import (
-    FigureCanvasGTK3Agg as FigureCanvas)
-import gpxpy.gpx
 import Plot
 import DataWorker
 import TraectoryListBoxRow
 
+# Диалоговые окна придется пилить самому, шаблоны из glada, можно вызвать только 1 раз
 
 class Pult:
     def __init__(self):
         """развертываем интерфейс из interface.glade"""
         self.builder = Gtk.Builder()
         self.builder.add_from_file("testInterface.glade")
-        self.window = self.builder.get_object("window1")
+
+        # главное окно с аттрибутами
+        self.window = self.builder.get_object("MainWindow")
         self.mapScrolledWindow = self.builder.get_object("MapScrolledWindows")
         self.listBox = self.builder.get_object("ListBox")
         self.traectoryFileChooserButton = self.builder.get_object("TraectoryFileChooserButton")
@@ -32,6 +29,16 @@ class Pult:
         self.clearAllButton.connect("clicked", self.clearAllButton_Click)
         self.addTraectoryButton.connect("clicked", self.addTraectoryButton_Click)
         self.updateButton.connect("clicked", self.updateButton_Click)
+
+        # Диалоговое окно выбора файлов
+
+
+        # Warning окно с аттрибутами
+        self.warningWindow = self.builder.get_object("WarningWindow")
+        self.warningDeleteButton = self.builder.get_object("WarningDeleteButton")
+        self.warningDeleteButton.connect("clicked", self.warningDeleteButton_Click)
+        self.warningCancelButton = self.builder.get_object("WarningCancelButton")
+        self.warningCancelButton.connect("clicked", self.warningCancelButton_Click)
 
         self.window.connect("delete-event", self.delete_event)
         self.window.set_title("Webkit")
@@ -81,6 +88,11 @@ class Pult:
                 del self.plots[i]     # удаляем график
                 break
 
+    def updateWebMapWorker(self):     # обновляем данные карты
+        self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
+        self.dataWorker.loadMarkersToGpxPoint("markers.gpx")
+        self.webview.reload()   # обновляем html страницу
+
     def delete_event(self, widget, event, data=None):
         [plot.destroy() for plot in self.plots]
         Gtk.main_quit()
@@ -92,17 +104,25 @@ class Pult:
         #self.cookie = self.cookiejar.all_cookies()  # заглушка для проверки куки
         #self.cookiejar.save()
 
+    """ обработчики нажатия кнопок"""
+
     def addTraectoryButton_Click(self, w):
-        traectoryPath = self.traectoryFileChooserButton.get_filename()
-        if traectoryPath is not None:
-            data = self.dataWorker.loadData(traectoryPath)     # загружаем данные из файла
-            plot = Plot.PlotWindow(title=data.name)  # создаем окно с графиком
-            self.addPlotToPlotList(self.plots, plot)
-            plot.plotCanvas.loadData(data)
-            row = TraectoryListBoxRow.TraectoryListBoxRow(data.name)     # берем только имя файла
-            self.addRowToListBox(self.listBox, row)     # добавляем row в listBox
-            self.updateWebMapWorker()
-            self.window.show_all()
+        dialog = Gtk.FileChooserDialog("Traectory Chooser", self.window, Gtk.FileChooserAction.OPEN,
+                                       (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                        Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            traectoryPath = dialog.get_filename()
+            if traectoryPath is not None:
+                data = self.dataWorker.loadData(traectoryPath)     # загружаем данные из файла
+                plot = Plot.PlotWindow(title=data.name)  # создаем окно с графиком
+                self.addPlotToPlotList(self.plots, plot)
+                plot.plotCanvas.loadData(data)
+                row = TraectoryListBoxRow.TraectoryListBoxRow(data.name)     # берем только имя файла
+                self.addRowToListBox(self.listBox, row)     # добавляем row в listBox
+                self.updateWebMapWorker()
+                self.window.show_all()
+        dialog.destroy()
 
     def clearAllButton_Click(self, w):     # очистка всех траекторий
         for row in self.listBox:
@@ -111,10 +131,11 @@ class Pult:
     def updateButton_Click(self, w):    # обновить web
         self.updateWebMapWorker()
 
-    def updateWebMapWorker(self):     # обновляем данные карты
-        self.dataWorker.loadSelfDataToGpxRoute("GPXRoutes.gpx")
-        self.dataWorker.loadMarkersToGpxPoint("markers.gpx")
-        self.webview.reload()   # обновляем html страницу
+    def warningDeleteButton_Click(self, w):
+        pass
+
+    def warningCancelButton_Click(self, w):
+        pass
 
 
 server.server.start()  # запускаем сервер
