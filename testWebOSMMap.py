@@ -114,8 +114,8 @@ class Pult:
                                        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
                                         Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
         filterRoute = Gtk.FileFilter()
-        filterRoute.set_name("Rout filter")
-        filterRoute.add_pattern("*.route")
+        filterRoute.set_name("Magnitude filter (*.mag)")
+        filterRoute.add_pattern("*.mag")
         dialog.add_filter(filterRoute)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
