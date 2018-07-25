@@ -1,7 +1,7 @@
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, Pango
 
 
 # виджет GTK ListBoxRow, для возможности добавления нужных в проекте строк
@@ -21,6 +21,12 @@ class TraectoryListBoxRow(Gtk.ListBoxRow):
         self.label.set_property("margin_top", 2)
         self.label.set_property("margin_bottom", 2)
 
+        # эти строки - плод страданий
+        self.label.modify_font(Pango.FontDescription("Tahoma 10"))  # размер и стиль шрифта
+        #self.label.set_property("max_width_chars", 25)  # максимальная ширина метки в символах
+        self.label.set_property("ellipsize", Pango.EllipsizeMode.END)  # метка будет сжиматься в конце
+        self.label.set_property("xalign", 0)  # метка выравнивается по левую сторону
+
         self.colorButton = Gtk.ColorButton()
         self.colorButton.set_property("margin_top", 2)
         self.colorButton.set_property("margin_bottom", 2)
@@ -35,7 +41,7 @@ class TraectoryListBoxRow(Gtk.ListBoxRow):
 
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)  # коробка для внутреностей
         box.pack_start(self.checkButton, False, False, 0)  # упаковываем checkbutton и кнопку удаления
-        box.pack_start(self.label, False, False, 0)
+        box.pack_start(self.label, False, True, 0)
         box.pack_end(self.deleteRowButton, False, False, 0)  # пакуем с конца
         box.pack_end(self.colorButton, False, False, 0)  # упаковываем цветную метку
         self.add(box)  # добавляем коробку в строку

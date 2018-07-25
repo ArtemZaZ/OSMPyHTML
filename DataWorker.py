@@ -54,8 +54,9 @@ class DataWorker:
         tokens = [i.split("\t") for i in lines]  # парсим строки на токены с разделителем \t
         data = Data(path.split("/")[-1])  # берем название файла
         for i, took in enumerate(tokens[1:], start=1):  # идем по токенам с нумерацией, начиная с 1
-            data.append(mN=i, lon=float(took[5][1:]), lat=float(took[6][1:]),
-                        magX=int(took[1]), magY=int(took[2]), magZ=int(took[3]), el=float(took[7]))
+            if int(took[-1][:-1]) != 0:     # если качество сигнала не равно 0
+                data.append(mN=i, lon=float(took[5][1:]), lat=float(took[6][1:]),
+                            magX=int(took[1]), magY=int(took[2]), magZ=int(took[3]), el=float(took[7]))
         self.dataLists.append(data)
         file.close()
         return data

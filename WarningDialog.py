@@ -11,7 +11,9 @@ class WarningDialog(Gtk.Dialog):
                              Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL))
         self.set_default_size(150, 100)
         self.label = Gtk.Label(text)
-        self.label.modify_font(Pango.FontDescription("Tahoma 12"))
+
+        self.label.modify_font(Pango.FontDescription("Tahoma 12"))  # размер и стиль шрифта
+
         box = self.get_content_area()
         image = Gtk.Image(stock=Gtk.STOCK_DIALOG_WARNING, icon_size=6)
         box.pack_start(image, False, False, 0)
