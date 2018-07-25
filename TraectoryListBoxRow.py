@@ -41,7 +41,7 @@ class TraectoryListBoxRow(Gtk.ListBoxRow):
 
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)  # коробка для внутреностей
         box.pack_start(self.checkButton, False, False, 0)  # упаковываем checkbutton и кнопку удаления
-        box.pack_start(self.label, False, True, 0)
+        box.pack_start(self.label, False, False, 0)
         box.pack_end(self.deleteRowButton, False, False, 0)  # пакуем с конца
         box.pack_end(self.colorButton, False, False, 0)  # упаковываем цветную метку
         self.add(box)  # добавляем коробку в строку

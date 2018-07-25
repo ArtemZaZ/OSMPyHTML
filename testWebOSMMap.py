@@ -113,6 +113,10 @@ class Pult:
         dialog = Gtk.FileChooserDialog("Traectory Chooser", self.window, Gtk.FileChooserAction.OPEN,
                                        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
                                         Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        filterRoute = Gtk.FileFilter()
+        filterRoute.set_name("Rout filter")
+        filterRoute.add_pattern("*.route")
+        dialog.add_filter(filterRoute)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             traectoryPath = dialog.get_filename()
@@ -144,12 +148,6 @@ class Pult:
 
     def updateButton_Click(self, w):  # обновить web
         self.updateWebMapWorker()
-
-    def warningDeleteButton_Click(self, w):
-        pass
-
-    def warningCancelButton_Click(self, w):
-        pass
 
 
 FileServer.server.start()  # запускаем сервер
