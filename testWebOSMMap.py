@@ -18,7 +18,7 @@ class Pult:
     def __init__(self):
         """развертываем интерфейс из interface.glade"""
         self.builder = Gtk.Builder()
-        self.builder.add_from_file("testInterface.glade")
+        self.builder.add_from_file("interface.glade")
 
         # главное окно с аттрибутами
         self.window = self.builder.get_object("MainWindow")

@@ -63,15 +63,15 @@
       };
 
       // слой с локального сервера - одна из траекторий(не нужная)
-      var vector = new ol.layer.Vector({
-        source: new ol.source.Vector({
-          url: 'http://localhost:8000/qw.gpx',
-          format: new ol.format.GPX()
-        }),
-        style: function(feature) {
-          return style[feature.getGeometry().getType()];
-        }
-      });
+      //var vector = new ol.layer.Vector({
+      //  source: new ol.source.Vector({
+      //    url: 'http://localhost:8000/qw.gpx',
+      //    format: new ol.format.GPX()
+      // }),
+      //  style: function(feature) {
+      //    return style[feature.getGeometry().getType()];
+      //  }
+      //});
 
       // слой с локального сервера - одна из траекторий(не нужная)
       var routes = new ol.layer.Vector({
@@ -111,7 +111,7 @@
 
       // карта
       var map = new ol.Map({
-        layers: [raster, vector, vector2, markersVector, routes], // загружаем все слои
+        layers: [raster, vector2, routes, markersVector], // загружаем все слои
         target: document.getElementById('map'),
         view: new ol.View({
           center: ol.proj.fromLonLat([28.801295,60.437403]), // центрирование карты
