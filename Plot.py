@@ -33,6 +33,7 @@ class SnaptoCursor(object):
         # update the line positions
         self.lx.set_ydata(y)
         self.ly.set_xdata(x)
+        self.ax.figure.canvas.draw()    # обновляем данные график
 
 
 # виджет-график
@@ -76,3 +77,5 @@ class PlotWindow(Gtk.Window):  # отдельное окно с графиком
         self.box.pack_start(self.plotCanvas, True, True, 0)
         self.toolbar = NavigationToolbar(self.plotCanvas, self)
         self.box.pack_start(self.toolbar, False, False, 1)
+
+

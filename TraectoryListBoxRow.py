@@ -47,7 +47,7 @@ class TraectoryListBoxRow(Gtk.ListBoxRow):
         self.add(box)  # добавляем коробку в строку
 
     def deleteRowButton_Click(self, w):
-        self.deleteRowCallBack(self, w)
+        return self.deleteRowCallBack(self, w)
 
     def deleteRowCallBack(self, row, w):  # калл-бэк ф-ия
         pass

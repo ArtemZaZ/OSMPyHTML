@@ -12,8 +12,6 @@ gi.require_version('Soup', '2.4')
 from gi.repository import WebKit, Gtk, Soup
 
 
-# Диалоговые окна придется пилить самому, шаблоны из glada, можно вызвать только 1 раз
-
 class Pult:
     def __init__(self):
         """развертываем интерфейс из interface.glade"""
@@ -59,6 +57,7 @@ class Pult:
                 self.removePlotInPlotListByName(name)  # закрываем и удаляем график
                 listBox.remove(row)  # удаляем row
                 self.updateWebMapWorker()  # обновляем web
+                return False
             else:  # предупреждаем об удалении траектории(удаляется одна траектория)
                 warning = WarningDialog.WarningDialog(self.window, "Удалить траекторию?")
                 response = warning.run()
@@ -69,6 +68,7 @@ class Pult:
                     listBox.remove(row)  # удаляем row
                     self.updateWebMapWorker()  # обновляем web
                 warning.destroy()  # закрываем окно
+                return True
 
         row.deleteRowCallBack = deleteTraectoryFunc  # заглушка, вызывается при нажатии любой из кнопок удаления
         # траектории
@@ -80,7 +80,17 @@ class Pult:
             self.dataWorker.loadMarkersToGpxPoint("markers.gpx")
             self.webview.reload()  # обновляем html страницу
 
+        def deletePlot(plot, event):    # обработчик удаления окна графика - удаляет и строку с траекторией
+            request = True
+            for row in self.listBox:
+                if row.label.get_text() == plot.get_title():
+                    request = row.deleteRowCallBack(row, True)
+                    break
+            return request
+
+        plot.connect("delete-event", deletePlot)
         plot.plotCanvas.setMarker = loadMarkers  # запихиваем обработчик в plotCanvas
+
         plot.show_all()
         plotList.append(plot)
 

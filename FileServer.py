@@ -22,7 +22,7 @@ def serve():
     test(CORSRequestHandler, HTTPServer)
 
 
-server = threading.Thread(target=serve)
+server = threading.Thread(target=serve, daemon=True)
 
 if __name__ == '__main__':
     test(CORSRequestHandler, HTTPServer)
