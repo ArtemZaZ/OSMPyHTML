@@ -1,7 +1,29 @@
 import gi
-
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, Pango
+
+
+# Доработанный словарь цветов по-умолчанию с генератором и геттером
+class __DefaultColorDictionary(dict):
+    # геттер по ключу
+    def get(self, key, default=0):
+        return Gdk.RGBA(*dict.get(self, key, default))
+
+    # генератор, выдает кортеж из ключа и цвета,
+    def generator(self):
+        for i in list(dict.items(self)):
+            yield (i[0], Gdk.RGBA(*i[1]))
+
+    def __setattr__(self, key, value):
+        raise AttributeError("This class can not assign any attributes")  # нельзя присваивать никаких аттрибутов
+
+
+# Закидываем в словарь значения
+DefaultColors = __DefaultColorDictionary(
+    red=(1.0, 0.0, 0.0, 1.0),
+    blue=(0.0, 0.0, 1.0, 1.0),
+    green=(0.0, 1.0, 0.0, 1.0)
+)
 
 
 # виджет GTK ListBoxRow, для возможности добавления нужных в проекте строк
@@ -23,13 +45,14 @@ class TraectoryListBoxRow(Gtk.ListBoxRow):
 
         # эти строки - плод страданий
         self.label.modify_font(Pango.FontDescription("Tahoma 10"))  # размер и стиль шрифта
-        #self.label.set_property("max_width_chars", 25)  # максимальная ширина метки в символах
+        # self.label.set_property("max_width_chars", 25)  # максимальная ширина метки в символах
         self.label.set_property("ellipsize", Pango.EllipsizeMode.END)  # метка будет сжиматься в конце
         self.label.set_property("xalign", 0)  # метка выравнивается по левую сторону
 
         self.colorButton = Gtk.ColorButton()
         self.colorButton.set_property("margin_top", 2)
         self.colorButton.set_property("margin_bottom", 2)
+        self.colorButton.connect("color-set", self.onColorChosen)   # вызывается ф-ия, при смене цвета
 
         image = Gtk.Image(stock=Gtk.STOCK_REMOVE)  # картинка на кнопку с удалением строки
         self.deleteRowButton = Gtk.Button(label=None, image=image)  # кнопка удаления строки
@@ -51,3 +74,14 @@ class TraectoryListBoxRow(Gtk.ListBoxRow):
 
     def deleteRowCallBack(self, row, w):  # калл-бэк ф-ия
         pass
+
+    def onColorChosen(self, userData):  # ф-ия вызывается при смене цвета
+        pass
+
+
+if __name__ == "__main__":
+    print(DefaultColors.get("red"))
+    generator = DefaultColors.generator()
+    print(generator.__next__())
+    print(generator.__next__())
+    print(generator.__next__())

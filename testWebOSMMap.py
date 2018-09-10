@@ -46,6 +46,8 @@ class Pult:
 
         self.dataWorker = DataWorker.DataWorker()  # обработчик данных
 
+        self.colorGenerator = TraectoryListBoxRow.DefaultColors.generator()
+
         self.window.show_all()
         Gtk.main()
 
@@ -72,6 +74,13 @@ class Pult:
 
         row.deleteRowCallBack = deleteTraectoryFunc  # заглушка, вызывается при нажатии любой из кнопок удаления
         # траектории
+        try:
+            # берем цвет из генератора
+            row.colorButton.set_rgba(self.colorGenerator.__next__()[1])
+        except StopIteration:
+            # создаем новый генератор
+            self.colorGenerator = TraectoryListBoxRow.DefaultColors.generator()
+            row.colorButton.set_rgba(self.colorGenerator.__next__()[1])
         listBox.add(row)
 
     def addPlotToPlotList(self, plotList, plot):
@@ -131,7 +140,7 @@ class Pult:
         if response == Gtk.ResponseType.OK:
             traectoryPath = dialog.get_filename()
             if traectoryPath is not None:
-                try:
+                #try:
                     data = self.dataWorker.loadData(traectoryPath)  # загружаем данные из файла
                     plot = Plot.PlotWindow(title=data.name)  # создаем окно с графиком
                     self.addPlotToPlotList(self.plots, plot)
@@ -140,11 +149,11 @@ class Pult:
                     self.addRowToListBox(self.listBox, row)  # добавляем row в listBox
                     self.updateWebMapWorker()
                     self.window.show_all()
-                except:
-                    warning = WarningDialog.WarningDialog(self.window, "Не удалось загрузить траекторию\n"
-                                                                       "  проверьте целостность файла")
-                    warning.run()
-                    warning.destroy()
+                #except:
+                #    warning = WarningDialog.WarningDialog(self.window, "Не удалось загрузить траекторию\n"
+                #                                                       "  проверьте целостность файла")
+                #    warning.run()
+                #    warning.destroy()
         dialog.destroy()
 
     def clearAllButton_Click(self, w):  # очистка всех траекторий
