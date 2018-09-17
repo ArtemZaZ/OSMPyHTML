@@ -84,7 +84,7 @@ class Pult:
         listBox.add(row)
 
     def addPlotToPlotList(self, plotList, plot):
-        def loadMarkers(plotCanvas, cursor, x, y):  # обработчик установки маркера на график, ставит маркер на карте
+        def loadMarkers(plotCanvas, cursor, x, y, index):  # обработчик установки маркера на график, ставит маркер на карте
             plotCanvas.data.plotMarkers.append(plotCanvas.data[x])
             self.dataWorker.loadMarkersToGpxPoint("markers.gpx")
             self.webview.reload()  # обновляем html страницу
