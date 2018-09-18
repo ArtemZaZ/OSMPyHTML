@@ -1,5 +1,6 @@
 import numpy as np
 import gi
+import numpy
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -15,8 +16,7 @@ class SnaptoCursor(object):
 
     """
 
-    def __init__(self, ax, data, isOne=False):  # ax - plot, x - набор данных по x, y - набор данных по y, isOne -
-        # один график или 3
+    def __init__(self, ax, data):  # ax - plot, x - набор данных по x, y - набор данных по y,
         self.__active = False  # активен ли курсор
         self.ax = ax
         self.lx = ax.axhline(color='k', lw=1)  # the horiz line
@@ -24,15 +24,12 @@ class SnaptoCursor(object):
         self.index = None  # индекс графика, на котором находится указатель
         self.active = False     # убираем линии
         self.data = data
-        self.isOne = isOne
 
     def mouseMove(self, event):
         if not event.inaxes:  # за пределами осей
             return
-        if self.isOne:
-            pass
-        else:
-            # в данном случае x - является номером измерений, нумерация с 1 -> можно использовать, как индекс
+        # в данном случае x - является номером измерений, нумерация с 1 -> можно использовать, как индекс
+        try:
             mx, my = event.xdata, event.ydata  # получение данных о положении курсора
             x = self.data.measurementNumber[int(mx)]     # получаем значение по X # можно опустить
             tempList = [abs(i - my) for i in [self.data.magnitudeX[x], self.data.magnitudeY[x], self.data.magnitudeZ[x]]]
@@ -40,13 +37,13 @@ class SnaptoCursor(object):
 
             if ind == 0:
                 y = self.data.magnitudeX[x]
-                self.index = 'x'
+                self.index = 'magX'
             elif ind == 1:
                 y = self.data.magnitudeY[x]
-                self.index = 'y'
+                self.index = 'magY'
             elif ind == 2:
                 y = self.data.magnitudeZ[x]
-                self.index = 'z'
+                self.index = 'magZ'
             else:
                 return
 
@@ -55,6 +52,8 @@ class SnaptoCursor(object):
                 self.lx.set_ydata(y)
                 self.ly.set_xdata(x)
             self.ax.figure.canvas.draw()  # обновляем данные график
+        except:
+            pass
 
     @property
     def active(self):
@@ -76,7 +75,9 @@ class PlotCanvas(FigureCanvas):
         self.data = None  # данные графика
         self.cursor = None  # курсор
         self.plot = None  # график
-        self.markersData = None  # маркеры
+        self.__markerStyle = dict(linestyle=':', color='0.4',
+                                  markersize=10, mfc="C0", mec="C0")
+        self.__markersDict = {}
 
     def loadData(self, data):  # загрузка графика
         self.data = data
@@ -84,6 +85,16 @@ class PlotCanvas(FigureCanvas):
         self.plot.plot(self.data.measurementNumber, self.data.magnitudeX)  # сделать, чтоб было 3 графика
         self.plot.plot(self.data.measurementNumber, self.data.magnitudeY)
         self.plot.plot(self.data.measurementNumber, self.data.magnitudeZ)
+        # маркеры, как отдельные графики
+        magXmarkers, = self.plot.plot([], linewidth=0, marker='.', **self.__markerStyle)
+        magYmarkers, = self.plot.plot([], linewidth=0, marker='1', **self.__markerStyle)
+        magZmarkers, = self.plot.plot([], linewidth=0, marker='|', **self.__markerStyle)
+        self.__markersDict = {  # словарь маркеров
+            "magX": magXmarkers,
+            "magY": magYmarkers,
+            "magZ": magZmarkers
+        }
+        self.plot.legend(self.plot.lines, ('magX', 'magY', 'magZ'))
         self.cursor = SnaptoCursor(self.plot, self.data)
         self.fig.canvas.mpl_connect("motion_notify_event", self.cursor.mouseMove)  # привязываем события к обработчикам
         self.fig.canvas.mpl_connect("button_press_event", self.mousePress)
@@ -94,7 +105,10 @@ class PlotCanvas(FigureCanvas):
         if self.cursor.active:
             x, y, index = self.cursor.ly.get_xdata(), self.cursor.lx.get_ydata(), self.cursor.index  # получение
             # текущих значений вертикальной и горизонтальной линий и индекса графика
-            self.plot.scatter(x, y, s=50)  # ставим маркер на график, толщина 50 попугаев
+            #scat = self.plot.scatter(x, y, s=50)  # ставим маркер на график, толщина 50 попугаев
+            markers = self.__markersDict.get(index)   # получаем линиюмаркеров
+            markers.set_xdata(numpy.append(markers.get_xdata(), x))
+            markers.set_ydata(numpy.append(markers.get_ydata(), y))
             self.setMarker(self, self.cursor, x, y, index)  # вызываем ф-ию обработчик того, что мы поставили маркер
 
     def setMarker(self, cursor, x, y, index):  # ф-ия для перегрузки, вызывается, когда ставится маркер

@@ -1,85 +1,56 @@
-from __future__ import print_function
-import matplotlib
-# Change to the desired backend
-matplotlib.use('GTK3Cairo')
-# matplotlib.use('TkAgg')
-# matplotlib.use('QT5Agg')
-matplotlib.rcParams['toolbar'] = 'toolmanager'
+import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.backend_tools import ToolBase, ToolToggleBase
+from matplotlib.lines import Line2D
 
 
-class ListTools(ToolBase):
-    '''List all the tools controlled by the `ToolManager`'''
-    # keyboard shortcut
-    default_keymap = 'm'
-    description = 'List Tools'
-
-    def trigger(self, *args, **kwargs):
-        print('_' * 80)
-        print("{0:12} {1:45} {2}".format(
-            'Name (id)', 'Tool description', 'Keymap'))
-        print('-' * 80)
-        tools = self.toolmanager.tools
-        for name in sorted(tools):
-            if not tools[name].description:
-                continue
-            keys = ', '.join(sorted(self.toolmanager.get_tool_keymap(name)))
-            print("{0:12} {1:45} {2}".format(
-                name, tools[name].description, keys))
-        print('_' * 80)
-        print("Active Toggle tools")
-        print("{0:12} {1:45}".format("Group", "Active"))
-        print('-' * 80)
-        for group, active in self.toolmanager.active_toggle.items():
-            print("{0:12} {1:45}".format(str(group), str(active)))
+points = np.ones(3)  # Draw 3 points for each line
+print(2*points)
+text_style = dict(horizontalalignment='right', verticalalignment='center',
+                  fontsize=12, fontdict={'family': 'monospace'})
+marker_style = dict(linestyle=':', color='0.8', markersize=10,
+                    mfc="C0", mec="C0")
 
 
-class GroupHideTool(ToolToggleBase):
-    '''Show lines with a given gid'''
-    default_keymap = 'G'
-    description = 'Show by gid'
-    default_toggled = True
-
-    def __init__(self, *args, **kwargs):
-        self.gid = kwargs.pop('gid')
-        ToolToggleBase.__init__(self, *args, **kwargs)
-
-    def enable(self, *args):
-        self.set_lines_visibility(True)
-
-    def disable(self, *args):
-        self.set_lines_visibility(False)
-
-    def set_lines_visibility(self, state):
-        gr_lines = []
-        for ax in self.figure.get_axes():
-            for line in ax.get_lines():
-                if line.get_gid() == self.gid:
-                    line.set_visible(state)
-        self.figure.canvas.draw()
+def format_axes(ax):
+    ax.margins(0.2)
+    ax.set_axis_off()
+    ax.invert_yaxis()
 
 
-fig = plt.figure()
-plt.plot([1, 2, 3], gid='mygroup')
-plt.plot([2, 3, 4], gid='unknown')
-plt.plot([3, 2, 1], gid='mygroup')
-
-# Add the custom tools that we created
-fig.canvas.manager.toolmanager.add_tool('List', ListTools)
-fig.canvas.manager.toolmanager.add_tool('Show', GroupHideTool, gid='mygroup')
+def nice_repr(text):
+    return repr(text).lstrip('u')
 
 
-# Add an existing tool to new group `foo`.
-# It can be added as many times as we want
-fig.canvas.manager.toolbar.add_tool('zoom', 'foo')
-fig.canvas
+def math_repr(text):
+    tx = repr(text).lstrip('u').strip("'").strip("$")
+    return r"'\${}\$'".format(tx)
 
-# Remove the forward button
-fig.canvas.manager.toolmanager.remove_tool('forward')
 
-# To add a custom tool to the toolbar at specific location inside
-# the navigation group
-fig.canvas.manager.toolbar.add_tool('Show', 'navigation', 1)
+def split_list(a_list):
+    i_half = len(a_list) // 2
+    return (a_list[:i_half], a_list[i_half:])
+
+
+
+
+fig, axes = plt.subplots(ncols=2)
+fig.suptitle('un-filled markers', fontsize=14)
+
+
+# Filter out filled markers and marker settings that do nothing.
+unfilled_markers = [m for m, func in Line2D.markers.items()
+                    if func != 'nothing' and m not in Line2D.filled_markers]
+
+print(list(zip(axes, split_list(unfilled_markers))))
+
+for ax, markers in zip(axes, split_list(unfilled_markers)):
+    for y, marker in enumerate(markers):
+        print(y, markers)
+        ax.text(-0.5, y, nice_repr(marker), **text_style)
+        print(marker)
+        ax.plot(y * points, marker=marker, **marker_style)
+        format_axes(ax)
+
+
 
 plt.show()
